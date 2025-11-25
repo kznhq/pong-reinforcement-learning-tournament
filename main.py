@@ -16,7 +16,7 @@ from sb3_contrib.common.maskable.policies import MaskableActorCriticPolicy
 from sb3_contrib.common.wrappers import ActionMasker
 
 import pettingzoo.utils
-from pettingzoo.classic import connect_four_v3
+from pettingzoo.classic import chess_v6
 
 
 # To pass into other gymnasium wrappers, we need to ensure that pettingzoo's wrappper
@@ -136,7 +136,8 @@ def eval_action_mask(env_fn, num_games=100, render_mode=None, **env_kwargs):
             # Separate observation and action mask
             observation, action_mask = obs.values()
 
-            if termination or truncation:
+            if termination:
+                print("Game ended properly")
                 # If there is a winner, keep track, otherwise don't change the scores (tie)
                 if (
                     env.rewards[env.possible_agents[0]]
@@ -152,11 +153,14 @@ def eval_action_mask(env_fn, num_games=100, render_mode=None, **env_kwargs):
                 # List of rewards by round, for reference
                 round_rewards.append(env.rewards)
                 break
+            elif truncation:
+                print("Game ended due to truncation")
+                break
             else:
                 if agent == env.possible_agents[0]:
                     act = env.action_space(agent).sample(action_mask)
                 else:
-                    # Note: PettingZoo expects integer actions # TODO: change chess to cast actions to type int?
+                    # Note: PettingZoo expects integer actions
                     act = int(
                         model.predict(
                             observation, action_masks=action_mask, deterministic=True
@@ -178,7 +182,7 @@ def eval_action_mask(env_fn, num_games=100, render_mode=None, **env_kwargs):
 
 
 if __name__ == "__main__":
-    env_fn = connect_four_v3
+    env_fn = chess_v6
 
     env_kwargs = {}
 
